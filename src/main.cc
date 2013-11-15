@@ -1,4 +1,5 @@
 #include <conio.h>
+#include <math.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -6,39 +7,31 @@
 #include <string>
 
 void main() {
-	clock_t s_time, e_time;
-	std::string training_str;
-
 restart:	
+	std::string training_str;
 	std::cout << "training string:" << std::endl;
 	std::cin >> training_str;
 	if (training_str == "quit") {
 		std::cout << "training finish!" << std::endl;
 		return;
-	}
-    printf("start!\n");
+	} 
+	std::cout << "start!" << std::endl;
 
 	while (1) {
 		char c;
-		while (c = getch()) {
-			if (c == 27) { // ESC
+		while (c = _getch()) {
+			if (c == 27) // ESC
 				goto restart;
-			} else if (c == training_str[0]) {
+			else if (c == training_str[0])
 				break;
-			}
 		}
 		std::cout << c;
-		s_time = clock();
-		int i = 1;
-		while (1) {
-			while ((c = getch()) != training_str[i]);
+		clock_t s_time = clock();
+		for (unsigned int i = 1; i < training_str.length(); ++i) {
+			while ((c = _getch()) != training_str[i]);
 			std::cout << c;
-			i++;
-			if (i == training_str.length())
-				break;
 		}
-		e_time = clock();
 		std::cout << std::endl << "cost: " << 
-			(double)(e_time - s_time) / 1000 << "s" << std::endl;
+			(double)(clock() - s_time) / 1000 << "s" << std::endl;
 	}
 }
