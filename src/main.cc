@@ -1,10 +1,14 @@
 #include <conio.h>
+#include <windows.h>
+#include <winnt.h>
 #include <math.h>
 #include <stdio.h>
 #include <time.h>
 
 #include <iostream>
 #include <string>
+
+static int mode = 0; // 0 for normal, 1 for random
 
 struct Stat
 {
@@ -22,6 +26,10 @@ struct Stat
 
 void PrintStat(const Stat& stat)
 {
+	HANDLE consolehwnd;
+	consolehwnd = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(consolehwnd, FOREGROUND_GREEN);
+
 	printf("\nresult :\n");
 	printf("\ttraining string: %s\n", stat.training_str.c_str());
 	printf("\ttrain num:  %6d\n", stat.num);
@@ -32,17 +40,43 @@ void PrintStat(const Stat& stat)
 		stat.hi_speed, stat.training_str.length() / stat.hi_speed);
 	printf("\tlow speed:  %6.3f s, %6.3f ch/s\n\n", 
 		stat.lo_speed, stat.training_str.length() / stat.lo_speed);
+
+	SetConsoleTextAttribute(consolehwnd, FOREGROUND_INTENSITY);
 }
 
-Stat Train(const std::string& training_str) 
+char GenRandomChar()
+{
+	static bool is_init = false;
+	if (!is_init)
+	{
+		srand((unsigned int)time(NULL));
+		is_init = true;
+	}
+	// characters between [32, 126]([0x20, 0x7e]) are displayable, 95 chars totally
+	int r = rand() % 95;
+	return (char)(32 + r);
+}
+
+Stat Train(std::string& training_str) 
 {
 	Stat ret_stat;
 	
-	ret_stat.training_str = training_str;
 	std::cout << "start!" << std::endl;
 
 	while (1) 
 	{
+		if (mode == 1) {
+			int len = 73;
+			char *buf = new char[len + 1];
+			for (int i = 0; i < len; ++i) {
+				buf[i] = GenRandomChar();
+			}
+			buf[len] = 0;
+			training_str.assign(buf);
+			std::cout << training_str << std::endl;
+		}
+		ret_stat.training_str = training_str;
+
 		char c;
 		clock_t s_time;
 		for (unsigned int i = 0; i < training_str.length(); ++i) {
@@ -70,14 +104,19 @@ Stat Train(const std::string& training_str)
 
 int main() {
 	while (1) {
+		mode = 0;
 		std::string training_str;
-		std::cout << "training string (\"quit\" to exit):" << std::endl;
+		std::cout << "training string (\"quit\" to exit, \"random\" for random string):" << std::endl;
 		std::cin >> training_str;
 		if (training_str == "quit")
 		{
 			std::cout << "training finish!" << std::endl;
 			break;
-		} 	
+		}
+		else if (training_str == "random") {
+			mode = 1;
+			std::cout << "random string mode, string len:" << std::endl;
+		}
 		
 		Stat stat = Train(training_str);
 		PrintStat(stat);
